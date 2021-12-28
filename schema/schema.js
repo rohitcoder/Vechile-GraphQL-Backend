@@ -2,6 +2,7 @@ const graphql = require('graphql');
 const UserSchema = require('./schemas/user')
 const DriverSchema = require('./schemas/driver')
 const VehicleSchema = require('./schemas/vehicle')
+const LoadsSchema = require('./schemas/loads')
 
 const {
     GraphQLObjectType,
@@ -14,7 +15,8 @@ const RootQuery = new GraphQLObjectType({
     fields:() => ({
         ...UserSchema.queries,
         ...DriverSchema.queries,
-        ...VehicleSchema.queries
+        ...VehicleSchema.queries,
+        ...LoadsSchema.queries
     })
 })
 
@@ -24,7 +26,8 @@ const mutation = new GraphQLObjectType({
     fields:() => ({
         ...UserSchema.mutations,
         ...DriverSchema.mutations,
-        ...VehicleSchema.mutations
+        ...VehicleSchema.mutations,
+        ...LoadsSchema.mutations
     })
 })
 

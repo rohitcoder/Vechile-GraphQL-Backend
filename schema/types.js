@@ -38,6 +38,11 @@ const Vehicle = new GraphQLObjectType({
         vehicle_number: { type: GraphQLString },
         vehicle_type: { type: GraphQLString },
         vehicle_model: { type: GraphQLString },
+        reg_expiry_date: { type: GraphQLString },
+        insurance_reg_date: { type: GraphQLString },
+        insurance_exp_date: { type: GraphQLString },
+        pollution_cert: { type: GraphQLString },
+        permit_cert: { type: GraphQLString },
         driver: {
             type: User,
             resolve(parent, args){
@@ -47,8 +52,28 @@ const Vehicle = new GraphQLObjectType({
     })
 })
 
-
+const Loads = new GraphQLObjectType({
+    name: 'Loads',
+    description: 'This holds all properties / fields related schema for Loads Object.',
+    fields:() => ({
+        //description, origin, destination, estimated weight
+        _id: { type: GraphQLString },
+        load_number: { type: GraphQLString },
+        description: { type: GraphQLString },
+        origin: { type: GraphQLString },
+        destination: { type: GraphQLString },
+        estimated_weight: { type: GraphQLString },
+        BidOpeningTime: { type: GraphQLString },
+        BidClosingTime: { type: GraphQLString },
+        BidWinner: {
+            type: User,
+            resolve(parent, args){
+                return methods.FindSingleRecord("users", "_id", parent.BidWinner)
+            }
+        },
+    })
+})
 
 module.exports = {
-    User, Vehicle,
+    User, Vehicle, Loads,
 }

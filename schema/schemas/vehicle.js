@@ -41,6 +41,11 @@ const mutations = {
             vehicle_number: { type: new GraphQLNonNull(GraphQLString) },
             vehicle_type: { type: new GraphQLNonNull(GraphQLString) },
             vehicle_model: { type: new GraphQLNonNull(GraphQLString) },
+            reg_expiry_date: { type: new GraphQLNonNull(GraphQLString) },
+            insurance_reg_date: { type: new GraphQLNonNull(GraphQLString) },
+            insurance_exp_date: { type: new GraphQLNonNull(GraphQLString) },
+            pollution_cert: { type: new GraphQLNonNull(GraphQLString) },
+            permit_cert: { type: new GraphQLNonNull(GraphQLString) },
             driver: { type: new GraphQLNonNull(GraphQLString) },
         },
         resolve: async (parent, args, context) => {
@@ -67,6 +72,44 @@ const mutations = {
             })
         }
     },
+    EditVehicle: {
+        type: Vehicle,
+        args: {
+            _id: { type: new GraphQLNonNull(GraphQLString) },
+            vehicle_number: { type: new GraphQLNonNull(GraphQLString) },
+            vehicle_type: { type: new GraphQLNonNull(GraphQLString) },
+            vehicle_model: { type: new GraphQLNonNull(GraphQLString) },
+            reg_expiry_date: { type: new GraphQLNonNull(GraphQLString) },
+            insurance_reg_date: { type: new GraphQLNonNull(GraphQLString) },
+            insurance_exp_date: { type: new GraphQLNonNull(GraphQLString) },
+            pollution_cert: { type: new GraphQLNonNull(GraphQLString) },
+            permit_cert: { type: new GraphQLNonNull(GraphQLString) },
+            driver: { type: new GraphQLNonNull(GraphQLString) },
+        },
+        resolve: async (parent, args, context) => {
+            return ValidateUser(context).then(async (auth) => {
+                if (!auth) {
+                    throw new GraphQLError('You are not authorized to perform this action')
+                }
+                return new Promise((resolve, reject) => {
+                    return methods.FindSingleRecord("vehicles", "_id", args._id).then(async (vehicle) => {
+                        if (!vehicle) {
+                            reject('Vehicle does not exist')
+                        }else{
+                            const joinedTime = new Date().getTime()
+                            return methods.UpdateRecord("vehicles", {"_id": args._id}, {"vehicle_number": args.vehicle_number, "vehicle_type": args.vehicle_type, "vehicle_model": args.vehicle_model, "driver": args.driver, "JoinedTime": joinedTime}).then(() => {
+                                return methods.FindSingleRecord("vehicles", "_id", args._id).then(async (vehicle) => {
+                                    resolve(vehicle)
+                                })
+                            })
+                        }
+                    })
+                }).catch(err => {
+                    throw new Error(err)
+                })
+            })
+        }
+    }
 }
 
 module.exports = {
