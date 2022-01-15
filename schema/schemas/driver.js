@@ -26,6 +26,23 @@ const queries = {
                 if (!auth) {
                     throw new Error('You are not authorized to perform this action')
                 }
+                return methods.ListRecords("users", {"type": "driver"}, args.limit, args.page, {}).then(users => {
+                    return users
+                })
+            })
+        }
+    },
+    MasterQueue: {
+        type: new GraphQLList(User),
+        args: {
+            limit: { type: GraphQLInt },
+            page: { type: GraphQLInt }
+        },
+        resolve: async (parent, args, context) => {
+            return ValidateUser(context).then(async (auth) => {
+                if (!auth) {
+                    throw new Error('You are not authorized to perform this action')
+                }
                 return methods.ListRecords("users", {"type": "driver"}, args.limit, args.page).then(users => {
                     return users
                 })
@@ -56,7 +73,8 @@ const mutations = {
                             const AuthToken = GenerateRandomString(20)
                             const password = await bcrypt.hash(args.password, 10)
                             const joinedTime = new Date().getTime()
-                            return methods.InsertRecord("users", {"firstName": args.firstName, "lastName": args.lastName, "phone": args.phone, "password": password, "type": "driver", "JoinedTime": joinedTime}).then(() => {
+                            return methods.InsertRecord("users", {"firstName": args.firstName, "lastName": args.lastName, "phone": args.phone, "password": password, "type": "driver", "JoinedTime": joinedTime}).then(async (driver) => {
+                                methods.InsertRecord("MasterQueue", { "driverId": driver._id, "time": joinedTime})
                                 return methods.FindSingleRecord("users", "phone", args.phone).then(async (user) => {
                                     resolve(user)
                                 })
