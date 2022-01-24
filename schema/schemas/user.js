@@ -9,6 +9,7 @@ const {
     GraphQLString,
     GraphQLError,
     GraphQLList,
+    GraphQLString,
     GraphQLInt
 } = graphql
 
