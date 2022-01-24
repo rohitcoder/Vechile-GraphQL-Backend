@@ -79,7 +79,7 @@ const OutPutMsg = new GraphQLObjectType({
     description: 'This is desc',
     fields:() => ({
         status: { type: GraphQLString },
-        message: { type: GrahpQLString }
+        message: { type: GraphQLString }
     })
 })
 
