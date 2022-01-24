@@ -9,7 +9,6 @@ const {
     GraphQLString,
     GraphQLError,
     GraphQLList,
-    GraphQLString,
     GraphQLInt
 } = graphql
 
@@ -19,7 +18,7 @@ const queries = {
     user: {
         type: User,
         args: {
-            id: { type: GraphQLString }
+            id: { type: new GraphQLNonNull(GraphQLString)  }
         },
         resolve: async (parent, args, context) => {
             const user = await methods.FindSingleRecord("users", "_id", args.id)
