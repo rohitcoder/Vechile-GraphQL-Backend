@@ -18,10 +18,10 @@ const queries = {
     user: {
         type: User,
         args: {
-            id: { type: GraphQLInt }
+            id: { type: GraphQLString }
         },
         resolve: async (parent, args, context) => {
-            const user = await methods.getUserById(args.id)
+            const user = await methods.FindSingleRecord("users", "_id", args.id)
             if (!user) {
                 throw new GraphQLError('User not found')
             }

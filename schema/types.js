@@ -18,7 +18,7 @@ const User = new GraphQLObjectType({
     name: 'User',
     description: 'This holds all properties / fields related schema for User Object.',
     fields:() => ({
-        _id: { type: GraphQLString},
+        _id: { type: GraphQLString },
         name: { 
             type: GraphQLString,
             resolve(parent, args) {
@@ -74,6 +74,15 @@ const Loads = new GraphQLObjectType({
     })
 })
 
+const OutPutMsg = new GraphQLObjectType({
+    name: 'OutPutMsg',
+    description: 'This is desc',
+    fields:() => ({
+        status: { type: GraphQLString },
+        message: { type: GrahpQLString }
+    })
+})
+
 module.exports = {
-    User, Vehicle, Loads,
+    User, Vehicle, Loads, OutPutMsg,
 }

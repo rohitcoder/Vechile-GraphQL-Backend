@@ -12,7 +12,7 @@ const {
     GraphQLInt
 } = graphql
 
-const { Loads } = require('../types');
+const { Loads, OutPutMsg } = require('../types');
 
 const queries = {
     ListLoads: {
@@ -53,6 +53,23 @@ const mutations = {
                     BidOpeningTime: args.BidOpeningTime,
                     BidClosingTime: args.BidClosingTime,
                     user_id
+                });
+            }).catch(err => {
+                throw new Error(err)
+            })
+        }
+    },
+    AssignLoad: {
+        type: OutPutMsg,
+        args: {
+            load_number: { type: new GraphQLNonNull(GraphQLString) },
+            driver_id: { type: new GraphQLNonNull(GraphQLString) },
+        },
+        resolve(parent, args, context) {
+            return ValidateUser(context).then(user => {
+                return methods.UpdateRecord("loads", {
+                    load_number: args.load_number,
+                    driver_id: args.driver_id
                 });
             }).catch(err => {
                 throw new Error(err)
