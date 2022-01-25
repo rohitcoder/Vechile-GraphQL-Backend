@@ -63,13 +63,13 @@ const mutations = {
         type: OutPutMsg,
         args: {
             load_number: { type: new GraphQLNonNull(GraphQLString) },
-            driver_id: { type: new GraphQLNonNull(GraphQLString) },
+            fleetOwner_id: { type: new GraphQLNonNull(GraphQLString) },
         },
         resolve(parent, args, context) {
             return ValidateUser(context).then(user => {
                 return methods.UpdateRecord("loads", {
                     load_number: args.load_number,
-                    driver_id: args.driver_id
+                    fleetOwner_id: args.fleetOwner_id
                 });
             }).catch(err => {
                 throw new Error(err)

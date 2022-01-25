@@ -1,4 +1,5 @@
 const graphql = require('graphql')
+const { ObjectId } = require('mongodb')
 const { methods, GenerateRandomString, ValidateUser } = require('../../core/functions')
 const bcrypt = require('bcrypt')
 const env = require('dotenv');
@@ -15,7 +16,21 @@ const {
 const { User } = require('../types');
 
 const queries = {
-    ListDrivers: {
+    getFleetOwner:{
+        type: User,
+        args: {
+            id: { type: new GraphQLNonNull(GraphQLString) }
+        },
+        resolve: async (parent, args, context) => {
+            return ValidateUser(context).then(async (auth) => {
+                if (!auth) {
+                    throw new Error('You are not authorized to perform this action')
+                }
+                return methods.FindSingleRecord("users", "_id", ObjectId(args.id))
+            })
+        }
+    },
+    ListFleetOwners: {
         type: new GraphQLList(User),
         args: {
             limit: { type: GraphQLInt },
@@ -26,7 +41,7 @@ const queries = {
                 if (!auth) {
                     throw new Error('You are not authorized to perform this action')
                 }
-                return methods.ListRecords("users", {"type": "driver"}, args.limit, args.page, {}).then(users => {
+                return methods.ListRecords("users", {"type": "fleetOwner"}, args.limit, args.page, {}).then(users => {
                     return users
                 })
             })
@@ -43,7 +58,7 @@ const queries = {
                 if (!auth) {
                     throw new Error('You are not authorized to perform this action')
                 }
-                return methods.ListRecords("users", {"type": "driver"}, args.limit, args.page).then(users => {
+                return methods.ListRecords("users", {"type": "fleetOwner"}, args.limit, args.page).then(users => {
                     return users
                 })
             })
@@ -52,7 +67,7 @@ const queries = {
 }
 
 const mutations = {
-    AddDriver: {
+    AddFleetOwner: {
         type: User,
         args: {
             firstName: { type: new GraphQLNonNull(GraphQLString) },
@@ -73,8 +88,8 @@ const mutations = {
                             const AuthToken = GenerateRandomString(20)
                             const password = await bcrypt.hash(args.password, 10)
                             const joinedTime = new Date().getTime()
-                            return methods.InsertRecord("users", {"firstName": args.firstName, "lastName": args.lastName, "phone": args.phone, "password": password, "type": "driver", "JoinedTime": joinedTime}).then(async (driver) => {
-                                methods.InsertRecord("MasterQueue", { "driverId": driver._id, "time": joinedTime})
+                            return methods.InsertRecord("users", {"firstName": args.firstName, "lastName": args.lastName, "phone": args.phone, "password": password, "type": "fleetOwner", "JoinedTime": joinedTime}).then(async (fleetOwner) => {
+                                methods.InsertRecord("MasterQueue", { "fleetOwnerId": fleetOwner._id, "time": joinedTime})
                                 return methods.FindSingleRecord("users", "phone", args.phone).then(async (user) => {
                                     resolve(user)
                                 })

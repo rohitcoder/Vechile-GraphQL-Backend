@@ -1,4 +1,5 @@
 const graphql = require('graphql')
+const { ObjectId } = require('mongodb')
 const { methods, GenerateRandomString, ValidateUser } = require('../../core/functions')
 const bcrypt = require('bcrypt')
 const env = require('dotenv');
@@ -15,6 +16,20 @@ const {
 const { Vehicle } = require('../types');
 
 const queries = {
+    getVehicle:{
+        type: Vehicle,
+        args: {
+            id: { type: new GraphQLNonNull(GraphQLString) }
+        },
+        resolve: async (parent, args, context) => {
+            return ValidateUser(context).then(async (auth) => {
+                if (!auth) {
+                    throw new Error('You are not authorized to perform this action')
+                }
+                return methods.FindSingleRecord("vehicles", "_id", ObjectId(args.id))
+            })
+        }
+    },
     VehiclesList: {
         type: new GraphQLList(Vehicle),
         args: {
@@ -38,15 +53,15 @@ const mutations = {
     AddVehicle: {
         type: Vehicle,
         args: {
-            vehicle_number: { type: new GraphQLNonNull(GraphQLString) },
-            vehicle_type: { type: new GraphQLNonNull(GraphQLString) },
-            vehicle_model: { type: new GraphQLNonNull(GraphQLString) },
-            reg_expiry_date: { type: new GraphQLNonNull(GraphQLString) },
-            insurance_reg_date: { type: new GraphQLNonNull(GraphQLString) },
-            insurance_exp_date: { type: new GraphQLNonNull(GraphQLString) },
-            pollution_cert: { type: new GraphQLNonNull(GraphQLString) },
-            permit_cert: { type: new GraphQLNonNull(GraphQLString) },
-            driver: { type: new GraphQLNonNull(GraphQLString) },
+            vehicleNumber: { type: new GraphQLNonNull(GraphQLString) },
+            vehicleType: { type: new GraphQLNonNull(GraphQLString) },
+            vehicleModel: { type: new GraphQLNonNull(GraphQLString) },
+            regExpiryDate: { type: new GraphQLNonNull(GraphQLString) },
+            insuranceRegDate: { type: new GraphQLNonNull(GraphQLString) },
+            insuranceExpDate: { type: new GraphQLNonNull(GraphQLString) },
+            pollutionCert: { type: new GraphQLNonNull(GraphQLString) },
+            permitCert: { type: new GraphQLNonNull(GraphQLString) },
+            fleetOwner: { type: new GraphQLNonNull(GraphQLString) },
         },
         resolve: async (parent, args, context) => {
             return ValidateUser(context).then(async (auth) => {
@@ -54,13 +69,14 @@ const mutations = {
                     throw new GraphQLError('You are not authorized to perform this action')
                 }
                 return new Promise((resolve, reject) => {
-                    return methods.FindSingleRecord("vehicles", "vehicle_number", args.vehicle_number).then(async (vehicle) => {
+                    return methods.FindSingleRecord("vehicles", "vehicleNumber", args.vehicleNumber).then(async (vehicle) => {
                         if (vehicle) {
                             reject('Vehicle already exists')
                         }else{
                             const joinedTime = new Date().getTime()
-                            return methods.InsertRecord("vehicles", {"vehicle_number": args.vehicle_number, "vehicle_type": args.vehicle_type, "vehicle_model": args.vehicle_model, "driver": args.driver, "JoinedTime": joinedTime}).then(() => {
-                                return methods.FindSingleRecord("vehicles", "vehicle_number", args.vehicle_number).then(async (vehicle) => {
+                            const otherData = { "JoinedTime": joinedTime }
+                            return methods.InsertRecord("vehicles", Object.assign(args, otherData)).then(() => {
+                                return methods.FindSingleRecord("vehicles", "vehicleNumber", args.vehicleNumber).then(async (vehicle) => {
                                     resolve(vehicle)
                                 })
                             })
@@ -76,15 +92,15 @@ const mutations = {
         type: Vehicle,
         args: {
             _id: { type: new GraphQLNonNull(GraphQLString) },
-            vehicle_number: { type: new GraphQLNonNull(GraphQLString) },
-            vehicle_type: { type: new GraphQLNonNull(GraphQLString) },
-            vehicle_model: { type: new GraphQLNonNull(GraphQLString) },
-            reg_expiry_date: { type: new GraphQLNonNull(GraphQLString) },
-            insurance_reg_date: { type: new GraphQLNonNull(GraphQLString) },
-            insurance_exp_date: { type: new GraphQLNonNull(GraphQLString) },
-            pollution_cert: { type: new GraphQLNonNull(GraphQLString) },
-            permit_cert: { type: new GraphQLNonNull(GraphQLString) },
-            driver: { type: new GraphQLNonNull(GraphQLString) },
+            vehicleNumber: { type: new GraphQLNonNull(GraphQLString) },
+            vehicleType: { type: new GraphQLNonNull(GraphQLString) },
+            vehicleModel: { type: new GraphQLNonNull(GraphQLString) },
+            regExpiryDate: { type: new GraphQLNonNull(GraphQLString) },
+            insuranceRegDate: { type: new GraphQLNonNull(GraphQLString) },
+            insuranceExpDate: { type: new GraphQLNonNull(GraphQLString) },
+            pollutionCert: { type: new GraphQLNonNull(GraphQLString) },
+            permitCert: { type: new GraphQLNonNull(GraphQLString) },
+            fleetOwner: { type: new GraphQLNonNull(GraphQLString) },
         },
         resolve: async (parent, args, context) => {
             return ValidateUser(context).then(async (auth) => {
@@ -97,7 +113,7 @@ const mutations = {
                             reject('Vehicle does not exist')
                         }else{
                             const joinedTime = new Date().getTime()
-                            return methods.UpdateRecord("vehicles", {"_id": args._id}, {"vehicle_number": args.vehicle_number, "vehicle_type": args.vehicle_type, "vehicle_model": args.vehicle_model, "driver": args.driver, "JoinedTime": joinedTime}).then(() => {
+                            return methods.UpdateRecord("vehicles", {"_id": args._id}, args).then(() => {
                                 return methods.FindSingleRecord("vehicles", "_id", args._id).then(async (vehicle) => {
                                     resolve(vehicle)
                                 })

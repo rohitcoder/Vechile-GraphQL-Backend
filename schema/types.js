@@ -27,6 +27,16 @@ const User = new GraphQLObjectType({
         },
         phone: { type: GraphQLString},
         auth_token: { type: GraphQLString},
+        vehicles: {
+            type: new GraphQLList(Vehicle),
+            args: {
+                limit: { type: GraphQLInt },
+                page: { type: GraphQLInt }
+            },
+            resolve(parent, args) {
+                return methods.ListRecords("vehicles", {"fleetOwner": parent._id.toString() }, args.limit, args.page)
+            }
+        }
     })
 })
 
@@ -35,18 +45,18 @@ const Vehicle = new GraphQLObjectType({
     description: 'This holds all properties / fields related schema for Vehicle Object.',
     fields:() => ({
         _id: { type: GraphQLString },
-        vehicle_number: { type: GraphQLString },
-        vehicle_type: { type: GraphQLString },
-        vehicle_model: { type: GraphQLString },
-        reg_expiry_date: { type: GraphQLString },
-        insurance_reg_date: { type: GraphQLString },
-        insurance_exp_date: { type: GraphQLString },
-        pollution_cert: { type: GraphQLString },
-        permit_cert: { type: GraphQLString },
-        driver: {
+        vehicleNumber: { type: GraphQLString },
+        vehicleType: { type: GraphQLString },
+        vehicleModel: { type: GraphQLString },
+        regExpiryDate: { type: GraphQLString },
+        insuranceRegDate: { type: GraphQLString },
+        insuranceExpDate: { type: GraphQLString },
+        pollutionCert: { type: GraphQLString },
+        permitCert: { type: GraphQLString },
+        fleetOwner: {
             type: User,
             resolve(parent, args){
-                return methods.FindSingleRecord("users", "_id", parent.driver)
+                return methods.FindSingleRecord("users", "_id", parent.fleetOwner)
             }
         }
     })
