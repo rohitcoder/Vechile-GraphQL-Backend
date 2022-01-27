@@ -78,7 +78,7 @@ const Loads = new GraphQLObjectType({
         BidWinner: {
             type: User,
             resolve(parent, args){
-                return methods.FindSingleRecord("users", "_id", parent.BidWinner)
+                return parent.BidWinner ? methods.FindSingleRecord("users", "_id", parent.BidWinner) : null
             }
         },
     })
