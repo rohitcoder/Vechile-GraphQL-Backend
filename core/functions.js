@@ -164,14 +164,13 @@ exports.methods = {
                 CacheKey = `${collection}_id${SearchObj["_id"].toString()}`
             }else{
                 obj = SearchObj
-            } 
+            }
             console.log("Deleting: "+CacheKey)
             db.then(function(db){
                 db.collection(collection).updateMany(obj, {$set: ValueObj}, function(err, response) {
                     if(err){
                         resolve(err)
                     }else{
-                        CacheKey ? exports.DeleteCache(CacheKey) : null
                         db.collection(collection).findOne(obj, function(err, response) {
                             if(err) resolve(err)
                             resolve(response)

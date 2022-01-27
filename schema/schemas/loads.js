@@ -1,4 +1,5 @@
 const graphql = require('graphql')
+const { ObjectId } = require('mongodb')
 const { methods, GenerateRandomString, ValidateUser } = require('../../core/functions')
 const bcrypt = require('bcrypt')
 const env = require('dotenv');
@@ -12,7 +13,7 @@ const {
     GraphQLInt
 } = graphql
 
-const { Loads, OutPutMsg } = require('../types');
+const { Loads, OutPutMsg, User } = require('../types');
 
 const queries = {
     ListLoads: {
@@ -26,6 +27,27 @@ const queries = {
                 return methods.ListRecords('loads', {}, args.limit, args.page)
             })
         }
+    },
+    BiddersList: {
+        type: new GraphQLList(User),
+        args: {
+            load_id: { type: new GraphQLNonNull(GraphQLString) },
+            limit: { type: GraphQLInt },
+            page: { type: GraphQLInt }
+        },
+        resolve(parent, args, context){
+            return ValidateUser(context).then(user => {
+                return methods.ListRecords("bidRequests", {
+                    load_id: ObjectId(args.load_id)
+                }, args.limit, args.page).then(response => {
+                    let userIds = []
+                    response.map(bid => {
+                        userIds.push(bid.bidderId)
+                    })
+                    return methods.FindMultipleRecord('users', "_id", userIds)
+                })
+            })
+        }
     }
 }
 
@@ -36,7 +58,7 @@ const mutations = {
             description: { type: new GraphQLNonNull(GraphQLString) },
             origin: { type: new GraphQLNonNull(GraphQLString) },
             destination: { type: new GraphQLNonNull(GraphQLString) },
-            estimated_weight: { type: new GraphQLNonNull(GraphQLInt) },
+            estimated_weight: { type: new GraphQLNonNull(GraphQLString) },
             BidOpeningTime: { type: new GraphQLNonNull(GraphQLString) },
             BidClosingTime: { type: new GraphQLNonNull(GraphQLString) },
         },
@@ -62,17 +84,66 @@ const mutations = {
     AssignLoad: {
         type: OutPutMsg,
         args: {
-            load_number: { type: new GraphQLNonNull(GraphQLString) },
+            load_id: { type: new GraphQLNonNull(GraphQLString) },
             fleetOwner_id: { type: new GraphQLNonNull(GraphQLString) },
         },
         resolve(parent, args, context) {
             return ValidateUser(context).then(user => {
                 return methods.UpdateRecord("loads", {
-                    load_number: args.load_number,
-                    fleetOwner_id: args.fleetOwner_id
-                });
+                    _id: args.load_id,
+                },
+                {
+                    fleetOwner_id: ObjectId(args.fleetOwner_id)
+                }).then(res=>{
+                    if(res){
+                        return {
+                            message: "Assigned Load Successfully",
+                            status: "success"
+                        }
+                    }else{
+                        return {
+                            message: "Unable to assign Load Successfully",
+                            status: "error"
+                        }
+                    }
+                })
             }).catch(err => {
                 throw new Error(err)
+            })
+        }
+    },
+    BidOnLoad: {
+        type: OutPutMsg,
+        args: {
+            load_id: { type: new GraphQLNonNull(GraphQLString)  },
+        },
+        resolve(parent, args, context){
+            return ValidateUser(context).then(user => {
+                return methods.FindRecordByMultipleFields("bidRequests", {
+                    load_id: ObjectId(args.load_id),
+                    bidderId: ObjectId(user.user_id)
+                }).then(resp => {
+                    if(resp){
+                        throw new Error("You already bidded for this load")
+                    }else{
+                         return methods.InsertRecord("bidRequests", {
+                            load_id: ObjectId(args.load_id),
+                            bidderId: ObjectId(user.user_id)
+                         }).then(response=>{
+                            if(response){
+                                return {
+                                    message: "Bid was Successful!",
+                                    status: true
+                                }
+                            }else{
+                                return {
+                                    message: "Unable to Bid!",
+                                    status: false
+                                }
+                            }
+                         })
+                    }
+                })
             })
         }
     }
