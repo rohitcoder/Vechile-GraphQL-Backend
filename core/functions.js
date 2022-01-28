@@ -166,6 +166,9 @@ exports.methods = {
                 obj = SearchObj
             }
             console.log("Deleting: "+CacheKey)
+            if(ValueObj._id){
+                ValueObj._id = ObjectId(ValueObj._id)
+            }
             db.then(function(db){
                 db.collection(collection).updateMany(obj, {$set: ValueObj}, function(err, response) {
                     if(err){
