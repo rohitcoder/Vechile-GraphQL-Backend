@@ -14,6 +14,43 @@ const {
     GraphQLBoolean
 } = graphql
 
+const BidResult = new GraphQLObjectType({
+    name: 'BidResult',
+    fields:() => ({
+        _id: { type: GraphQLString },
+        bidRequests: { 
+            type: new GraphQLList(User),
+            args: {
+                limit: { type: GraphQLInt },
+                page: { type: GraphQLInt },
+            },
+            resolve(parent, args){
+                return methods.ListRecords("bidRequests", {
+                    load_id: ObjectId(parent._id)
+                }, args.limit, args.page).then(response => {
+                    let userIds = []
+                    response.map(bid => {
+                        userIds.push(bid.bidderId)
+                    })
+                    return methods.FindMultipleRecord('users', "_id", userIds)
+                })
+            }
+        },
+        BidWinner: {
+            type: User,
+            resolve(parent, args){
+                return parent.fleetOwner_id ? methods.FindSingleRecord("users", "_id", parent.fleetOwner_id) : null
+            }
+        },
+        loadDetails: {
+            type: Loads,
+            resolve(parent, args){
+                return methods.FindSingleRecord("loads", "_id", parent._id)
+            }
+        }
+    })
+})
+
 const User = new GraphQLObjectType({
     name: 'User',
     description: 'This holds all properties / fields related schema for User Object.',
@@ -78,7 +115,7 @@ const Loads = new GraphQLObjectType({
         BidWinner: {
             type: User,
             resolve(parent, args){
-                return parent.BidWinner ? methods.FindSingleRecord("users", "_id", parent.BidWinner) : null
+                return parent.fleetOwner_id ? methods.FindSingleRecord("users", "_id", parent.fleetOwner_id) : null
             }
         },
     })
@@ -94,5 +131,5 @@ const OutPutMsg = new GraphQLObjectType({
 })
 
 module.exports = {
-    User, Vehicle, Loads, OutPutMsg,
+    User, Vehicle, Loads, OutPutMsg, BidResult,
 }

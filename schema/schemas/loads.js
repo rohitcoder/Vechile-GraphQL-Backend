@@ -13,9 +13,21 @@ const {
     GraphQLInt
 } = graphql
 
-const { Loads, OutPutMsg, User } = require('../types');
+const { Loads, OutPutMsg, User, BidResult } = require('../types');
 
 const queries = {
+    BidWinnings: {
+        type: new GraphQLList(BidResult),
+        args: {
+            limit: { type: GraphQLInt },
+            page: { type: GraphQLInt },
+        },
+        resolve(parent, args, context){
+            return ValidateUser(context).then(user => {
+                return methods.ListRecords("loads", {}, args.limit, args.page)
+            })
+        }
+    },
     ListLoads: {
         type: new GraphQLList(Loads),
         args: {
