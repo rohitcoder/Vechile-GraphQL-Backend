@@ -78,7 +78,11 @@ const mutations = {
         resolve: async (parent, args, context) => {
             return ValidateUser(context).then(async (auth) => {
                 if (!auth) {
-                    throw new GraphQLError('You are not authorized to perform this action')
+                    throw new Error('You are not authorized to perform this action')
+                }
+                // check firstName and lastName and phone is not empty
+                if (!args.firstName || !args.lastName || !args.phone) {
+                    throw new Error('Please fill all required fields')
                 }
                 return new Promise((resolve, reject) => {
                     return methods.FindSingleRecord("users", "phone", args.phone).then(async (user) => {
