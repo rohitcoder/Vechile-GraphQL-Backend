@@ -73,7 +73,8 @@ const User = new GraphQLObjectType({
             resolve(parent, args) {
                 return methods.ListRecords("vehicles", {"fleetOwner": parent._id.toString() }, args.limit, args.page)
             }
-        }
+        },
+        type: { type: GraphQLString },
     })
 })
 
