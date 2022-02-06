@@ -1,6 +1,6 @@
 const graphql = require('graphql')
 const { GraphQLJSON } = require('graphql-type-json')
-const { methods } = require('../core/functions')
+const { methods, ValidateUser } = require('../core/functions')
 const env = require('dotenv');
 const { ObjectId } = require('mongodb')
 env.config({ path: '.env' });  
@@ -48,6 +48,28 @@ const BidResult = new GraphQLObjectType({
                 return methods.FindSingleRecord("loads", "_id", parent._id)
             }
         }
+    })
+})
+
+const bidRequests = new GraphQLObjectType({
+    name: 'bidRequests',
+    description: 'This holds all properties / fields related schema for bidRequests object',
+    fields:() => ({
+        _id: { type: GraphQLString },
+        name: { 
+            type: GraphQLString,
+            resolve(parent, args) {
+                return `${parent.bidder.firstName} ${parent.bidder.lastName}`
+            }
+        },
+        biddedVehicle: {
+            type: Vehicle,
+            async resolve(parent, args, context){
+                parent.vechicleId = parent.vechicleId ? parent.vechicleId : 0
+                let data = await methods.FindSingleRecord("vehicles", "_id", parent.vechicleId)
+                return data
+            }
+        },
     })
 })
 
@@ -119,6 +141,28 @@ const Loads = new GraphQLObjectType({
                 return parent.fleetOwner_id ? methods.FindSingleRecord("users", "_id", parent.fleetOwner_id) : null
             }
         },
+        BidWinnerVehicle: {
+            type: Vehicle,
+            resolve(parent, args){
+                return parent.vechicleId ? methods.FindSingleRecord("vehicles", "_id", parent.vechicleId) : null
+            }
+        },
+        isBiddedByMe: {
+            type: GraphQLBoolean,
+            resolve(parent, args, context){
+                return ValidateUser(context).then(user => {
+                    return methods.FindRecordByMultipleFields("bidRequests", {
+                        load_id: ObjectId(parent._id),
+                        bidderId: ObjectId(user.user_id)
+                    }).then(resp => {
+                        if(resp){
+                            return true
+                        }
+                        return false
+                    })
+                })
+            }       
+        }
     })
 })
 
@@ -132,5 +176,5 @@ const OutPutMsg = new GraphQLObjectType({
 })
 
 module.exports = {
-    User, Vehicle, Loads, OutPutMsg, BidResult,
+    User, Vehicle, Loads, OutPutMsg, BidResult, bidRequests,
 }

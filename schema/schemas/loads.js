@@ -13,7 +13,7 @@ const {
     GraphQLInt
 } = graphql
 
-const { Loads, OutPutMsg, User, BidResult } = require('../types');
+const { Loads, OutPutMsg, User, BidResult, bidRequests } = require('../types');
 
 const queries = {
     BidWinnings: {
@@ -41,7 +41,7 @@ const queries = {
         }
     },
     BiddersList: {
-        type: new GraphQLList(User),
+        type: new GraphQLList(bidRequests),
         args: {
             load_id: { type: new GraphQLNonNull(GraphQLString) },
             limit: { type: GraphQLInt },
@@ -56,7 +56,19 @@ const queries = {
                     response.map(bid => {
                         userIds.push(bid.bidderId)
                     })
-                    return methods.FindMultipleRecord('users', "_id", userIds)
+                    return methods.ListRecords("users", {
+                        _id: { $in: userIds }
+                    }, args.limit, args.page).then(users => {
+                        response.map(bid => {
+                            users.map(user => {
+                                if(user._id.toString() === bid.bidderId.toString()){
+                                    bid.bidder = user
+                                    bid.bidder.vechicleId = bid.vechicleId
+                                }
+                            })
+                        })
+                        return response
+                    })
                 })
             })
         }
@@ -97,27 +109,33 @@ const mutations = {
         type: OutPutMsg,
         args: {
             load_id: { type: new GraphQLNonNull(GraphQLString) },
-            fleetOwner_id: { type: new GraphQLNonNull(GraphQLString) },
+            fleetOwner_id: { type: new GraphQLNonNull(GraphQLString) }
         },
         resolve(parent, args, context) {
             return ValidateUser(context).then(user => {
-                return methods.UpdateRecord("loads", {
-                    _id: args.load_id,
-                },
-                {
-                    fleetOwner_id: ObjectId(args.fleetOwner_id)
-                }).then(res=>{
-                    if(res){
-                        return {
-                            message: "Assigned Load Successfully",
-                            status: "success"
+                return methods.FindRecordByMultipleFields("bidRequests", {
+                    load_id: ObjectId(args.load_id),
+                    bidderId: ObjectId(args.fleetOwner_id)
+                }).then(bidderInfo => {
+                    return methods.UpdateRecord("loads", {
+                        _id: args.load_id,
+                    },
+                    {
+                        fleetOwner_id: ObjectId(args.fleetOwner_id),
+                        vechicleId: ObjectId(bidderInfo.vechicleId)
+                    }).then(res=>{
+                        if(res){
+                            return {
+                                message: "Assigned Load Successfully",
+                                status: "success"
+                            }
+                        }else{
+                            return {
+                                message: "Unable to assign Load Successfully",
+                                status: "error"
+                            }
                         }
-                    }else{
-                        return {
-                            message: "Unable to assign Load Successfully",
-                            status: "error"
-                        }
-                    }
+                    })
                 })
             }).catch(err => {
                 throw new Error(err)
@@ -128,6 +146,7 @@ const mutations = {
         type: OutPutMsg,
         args: {
             load_id: { type: new GraphQLNonNull(GraphQLString)  },
+            vechicleId: { type: GraphQLString },
         },
         resolve(parent, args, context){
             return ValidateUser(context).then(user => {
@@ -140,7 +159,8 @@ const mutations = {
                     }else{
                          return methods.InsertRecord("bidRequests", {
                             load_id: ObjectId(args.load_id),
-                            bidderId: ObjectId(user.user_id)
+                            bidderId: ObjectId(user.user_id),
+                            vechicleId: ObjectId(args.vechicleId)
                          }).then(response=>{
                             if(response){
                                 return {
