@@ -58,8 +58,19 @@ const queries = {
                 if (!auth) {
                     throw new Error('You are not authorized to perform this action')
                 }
-                return methods.ListRecords("users", {"type": "fleetOwner"}, args.limit, args.page).then(users => {
-                    return users
+                let UserIds = []
+                return methods.ListRecords("MasterQueue", {}, args.limit, args.page).then(users => {
+                    users.map(user => {
+                        UserIds.push(user.user_id)
+                    })
+                    let UserRecords = []
+                    return methods.FindMultipleRecord("users", "_id", UserIds).then(users => {
+                       // compare  users._id with user_id in UserIds and return in same order
+                       UserIds.map(user => {
+                           UserRecords.push(users.find(u => u._id.toString() === user.toString()))
+                       })
+                       return UserRecords
+                    })
                 })
             })
         }

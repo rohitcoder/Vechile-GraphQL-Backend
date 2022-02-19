@@ -122,9 +122,17 @@ const mutations = {
                     },
                     {
                         fleetOwner_id: ObjectId(args.fleetOwner_id),
-                        vechicleId: ObjectId(bidderInfo.vechicleId)
+                        vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
                     }).then(res=>{
                         if(res){
+                            methods.DeleteRecord("MasterQueue", {
+                                user_id: ObjectId(args.fleetOwner_id)
+                            }).then(res => {
+                                methods.InsertRecord("MasterQueue", {
+                                    user_id: ObjectId(args.fleetOwner_id),
+                                    load_id: ObjectId(args.load_id)
+                                })
+                            })
                             return {
                                 message: "Assigned Load Successfully",
                                 status: "success"
