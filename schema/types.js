@@ -62,6 +62,12 @@ const bidRequests = new GraphQLObjectType({
                 return `${parent.bidder.firstName} ${parent.bidder.lastName}`
             }
         },
+        phone: {
+            type: GraphQLString,
+            resolve(parent, args) {
+                return parent.bidder.phone
+            }
+        },
         biddedVehicle: {
             type: Vehicle,
             async resolve(parent, args, context){
