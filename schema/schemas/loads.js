@@ -64,8 +64,10 @@ const queries = {
                                 if(user._id.toString() === bid.bidderId.toString()){
                                     bid.bidder = user
                                     bid.bidder.vechicleId = bid.vechicleId
+                                    bid.bidder._id = bid.bidderId
                                 }
                             })
+                            bid._id = bid.bidderId
                         })
                         return response
                     })
