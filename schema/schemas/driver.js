@@ -104,7 +104,7 @@ const mutations = {
                             const password = await bcrypt.hash(args.password, 10)
                             const joinedTime = new Date().getTime()
                             return methods.InsertRecord("users", {"firstName": args.firstName, "lastName": args.lastName, "phone": args.phone, "password": password, "type": "fleetOwner", "JoinedTime": joinedTime}).then(async (fleetOwner) => {
-                                methods.InsertRecord("MasterQueue", { "fleetOwnerId": fleetOwner._id, "time": joinedTime})
+                                methods.InsertRecord("MasterQueue", { "user_id": fleetOwner._id, "time": joinedTime})
                                 return methods.FindSingleRecord("users", "phone", args.phone).then(async (user) => {
                                     resolve(user)
                                 })
