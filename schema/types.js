@@ -103,6 +103,16 @@ const User = new GraphQLObjectType({
             }
         },
         type: { type: GraphQLString },
+        lastVechileInfo: {
+            type: Vehicle,
+            resolve(parent, args){
+                return methods.ListRecords("loads", {
+                    "fleetOwner_id": parent._id,
+                }, 1, 0, {}).then(response => {
+                    return response[0] ? methods.FindSingleRecord("vehicles", "_id", response[0].vechicleId) : {}
+                })
+            }
+        },
     })
 })
 
