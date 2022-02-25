@@ -128,11 +128,12 @@ const mutations = {
                     }).then(res=>{
                         if(res){
                             methods.DeleteRecord("MasterQueue", {
-                                user_id: ObjectId(args.fleetOwner_id)
+                                vechicleId: ObjectId(bidderInfo.vechicleId),
                             }).then(res => {
                                 methods.InsertRecord("MasterQueue", {
                                     user_id: ObjectId(args.fleetOwner_id),
-                                    load_id: ObjectId(args.load_id)
+                                    load_id: ObjectId(args.load_id),
+                                    vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
                                 })
                             })
                             return {
@@ -160,6 +161,9 @@ const mutations = {
         },
         resolve(parent, args, context){
             return ValidateUser(context).then(user => {
+                if(args.vechicleId.trim() === ""){
+                    throw new Error("Vechicle Id is required")
+                }
                 return methods.FindRecordByMultipleFields("bidRequests", {
                     load_id: ObjectId(args.load_id),
                     bidderId: ObjectId(user.user_id)

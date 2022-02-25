@@ -46,6 +46,33 @@ const queries = {
                 })
             })
         }
+    },
+    MasterVechileQueue: {
+        type: new GraphQLList(Vehicle),
+        args: {
+            limit: { type: GraphQLInt },
+            page: { type: GraphQLInt }
+        },
+        resolve: async (parent, args, context) => {
+            return ValidateUser(context).then(async (auth) => {
+                if (!auth) {
+                    throw new Error('You are not authorized to perform this action')
+                }
+                let vechileIds = []
+                return methods.ListRecords("MasterQueue", {}, args.limit, args.page).then(vehicles => {
+                    vehicles.map(vehicle => {
+                        vechileIds.push(vehicle.vechicleId)
+                    })
+                    let vechileRecords = []
+                    return methods.FindMultipleRecord("vehicles", "_id", vechileIds).then(vehicles => {
+                        vechileIds.map(vehicle => {
+                            vechileRecords.push(vehicles.find(u => u._id.toString() === vehicle.toString()))
+                        })
+                        return vechileRecords
+                    })
+                })
+            })
+        }
     }
 }
 
