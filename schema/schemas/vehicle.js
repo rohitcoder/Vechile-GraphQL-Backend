@@ -102,7 +102,15 @@ const mutations = {
                         }else{
                             const joinedTime = new Date().getTime()
                             const otherData = { "JoinedTime": joinedTime }
-                            return methods.InsertRecord("vehicles", Object.assign(args, otherData)).then(() => {
+                            return methods.InsertRecord("vehicles", Object.assign(args, otherData)).then(async (addedVehicle) => {
+                                methods.DeleteRecord("MasterQueue", {
+                                    vechicleId: ObjectId(addedVehicle._id),
+                                }).then(res => {
+                                    methods.InsertRecord("MasterQueue", {
+                                        user_id: ObjectId(auth.user_id),
+                                        vechicleId: ObjectId(addedVehicle._id),
+                                    })
+                                })
                                 return methods.FindSingleRecord("vehicles", "vehicleNumber", args.vehicleNumber).then(async (vehicle) => {
                                     resolve(vehicle)
                                 })
