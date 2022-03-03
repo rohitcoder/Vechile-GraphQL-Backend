@@ -138,14 +138,14 @@ const Vehicle = new GraphQLObjectType({
         MasterQueuePosition: {
             type: GraphQLInt,
             async resolve(parent, args){
-                let MasterQueue = await methods.ListRecords("loads", {}, 100000, 0)
+                let MasterQueue = await methods.ListRecords("MasterQueue", {}, 100000, 0)
                 // iterate through the master queue and find the position of the vehicle
                 let position = 0
                 MasterQueue.map((record, index) => {
                     const vechicleId = record.vechicleId ? record.vechicleId.toString() : undefined
                     const parentVechicleId = parent._id.toString()
                     if(vechicleId == parentVechicleId){
-                        position = index
+                        position = index + 1
                     }
                 })
                 return position
