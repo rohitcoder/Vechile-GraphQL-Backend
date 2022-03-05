@@ -114,47 +114,47 @@ const mutations = {
             fleetOwner_id: { type: new GraphQLNonNull(GraphQLString) },
             vechicleId: { type: new GraphQLNonNull(GraphQLString) },
         },
-        resolve(parent, args, context) {
-            return ValidateUser(context).then(user => {
-                return methods.FindRecordByMultipleFields("bidRequests", {
+        async resolve(parent, args, context) {
+            const user = await ValidateUser(context)
+            const bidderInfo = await methods.FindRecordByMultipleFields("bidRequests", {
+                load_id: ObjectId(args.load_id),
+                bidderId: ObjectId(args.fleetOwner_id)
+            })
+            if(!bidderInfo){
+                // This biddin wasn't found, lets bid on this automatically
+                await methods.InsertRecord("bidRequests", {
                     load_id: ObjectId(args.load_id),
-                    bidderId: ObjectId(args.fleetOwner_id)
-                }).then(bidderInfo => {
-                    if(!bidderInfo){
-                        bidderInfo = {}
-                        bidderInfo.vechicleId = args.vechicleId
-                    }
-                    return methods.UpdateRecord("loads", {
-                        _id: args.load_id,
-                    },
-                    {
-                        fleetOwner_id: ObjectId(args.fleetOwner_id),
-                        vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
-                    }).then(res=>{
-                        if(res){
-                            methods.DeleteRecord("MasterQueue", {
-                                vechicleId: ObjectId(bidderInfo.vechicleId),
-                            }).then(res => {
-                                methods.InsertRecord("MasterQueue", {
-                                    user_id: ObjectId(args.fleetOwner_id),
-                                    load_id: ObjectId(args.load_id),
-                                    vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
-                                })
-                            })
-                            return {
-                                message: "Assigned Load Successfully",
-                                status: "success"
-                            }
-                        }else{
-                            return {
-                                message: "Unable to assign Load Successfully",
-                                status: "error"
-                            }
-                        }
-                    })
+                    bidderId: ObjectId(args.fleetOwner_id),
+                    vechicleId: ObjectId(args.vechicleId)
                 })
-            }).catch(err => {
-                throw new Error(err)
+            }
+            return methods.UpdateRecord("loads", {
+                _id: args.load_id,
+            },
+            {
+                fleetOwner_id: ObjectId(args.fleetOwner_id),
+                vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
+            }).then(res=>{
+                if(res){
+                    methods.DeleteRecord("MasterQueue", {
+                        vechicleId: ObjectId(bidderInfo.vechicleId),
+                    }).then(res => {
+                        methods.InsertRecord("MasterQueue", {
+                            user_id: ObjectId(args.fleetOwner_id),
+                            load_id: ObjectId(args.load_id),
+                            vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
+                        })
+                    })
+                    return {
+                        message: "Assigned Load Successfully",
+                        status: "success"
+                    }
+                }else{
+                    return {
+                        message: "Unable to assign Load Successfully",
+                        status: "error"
+                    }
+                }
             })
         }
     },
