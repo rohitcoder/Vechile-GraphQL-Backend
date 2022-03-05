@@ -136,10 +136,10 @@ const mutations = {
                 vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
             }).then(res=>{
                 if(res){
-                    await methods.DeleteRecord("MasterQueue", {
+                    methods.DeleteRecord("MasterQueue", {
                         vechicleId: ObjectId(bidderInfo.vechicleId),
                     }).then(res => {
-                        await methods.InsertRecord("MasterQueue", {
+                        methods.InsertRecord("MasterQueue", {
                             user_id: ObjectId(args.fleetOwner_id),
                             load_id: ObjectId(args.load_id),
                             vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
