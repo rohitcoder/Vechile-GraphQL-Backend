@@ -120,12 +120,15 @@ const mutations = {
                     load_id: ObjectId(args.load_id),
                     bidderId: ObjectId(args.fleetOwner_id)
                 }).then(bidderInfo => {
+                    if(!bidderInfo.vechicleId){
+                        bidderInfo.vechicleId = args.vechicleId
+                    }
                     return methods.UpdateRecord("loads", {
                         _id: args.load_id,
                     },
                     {
                         fleetOwner_id: ObjectId(args.fleetOwner_id),
-                        vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : ObjectId(args.vechicleId)
+                        vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
                     }).then(res=>{
                         if(res){
                             methods.DeleteRecord("MasterQueue", {
@@ -134,7 +137,7 @@ const mutations = {
                                 methods.InsertRecord("MasterQueue", {
                                     user_id: ObjectId(args.fleetOwner_id),
                                     load_id: ObjectId(args.load_id),
-                                    vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : ObjectId(args.vechicleId),
+                                    vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
                                 })
                             })
                             return {
