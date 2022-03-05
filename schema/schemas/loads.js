@@ -116,13 +116,13 @@ const mutations = {
         },
         async resolve(parent, args, context) {
             const user = await ValidateUser(context)
-            const bidderInfo = await methods.FindRecordByMultipleFields("bidRequests", {
+            let bidderInfo = await methods.FindRecordByMultipleFields("bidRequests", {
                 load_id: ObjectId(args.load_id),
                 bidderId: ObjectId(args.fleetOwner_id)
             })
             if(!bidderInfo){
                 // This biddin wasn't found, lets bid on this automatically
-                await methods.InsertRecord("bidRequests", {
+                bidderInfo = await methods.InsertRecord("bidRequests", {
                     load_id: ObjectId(args.load_id),
                     bidderId: ObjectId(args.fleetOwner_id),
                     vechicleId: ObjectId(args.vechicleId)
