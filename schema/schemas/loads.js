@@ -111,7 +111,8 @@ const mutations = {
         type: OutPutMsg,
         args: {
             load_id: { type: new GraphQLNonNull(GraphQLString) },
-            fleetOwner_id: { type: new GraphQLNonNull(GraphQLString) }
+            fleetOwner_id: { type: new GraphQLNonNull(GraphQLString) },
+            vechicleId: { type: new GraphQLNonNull(GraphQLString) },
         },
         resolve(parent, args, context) {
             return ValidateUser(context).then(user => {
@@ -124,7 +125,7 @@ const mutations = {
                     },
                     {
                         fleetOwner_id: ObjectId(args.fleetOwner_id),
-                        vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
+                        vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : ObjectId(args.vechicleId)
                     }).then(res=>{
                         if(res){
                             methods.DeleteRecord("MasterQueue", {
@@ -133,7 +134,7 @@ const mutations = {
                                 methods.InsertRecord("MasterQueue", {
                                     user_id: ObjectId(args.fleetOwner_id),
                                     load_id: ObjectId(args.load_id),
-                                    vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
+                                    vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : ObjectId(args.vechicleId),
                                 })
                             })
                             return {
