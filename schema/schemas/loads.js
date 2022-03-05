@@ -128,7 +128,7 @@ const mutations = {
                     vechicleId: ObjectId(args.vechicleId)
                 })
             }
-            return methods.UpdateRecord("loads", {
+            const resp = await methods.UpdateRecord("loads", {
                 _id: args.load_id,
             },
             {
@@ -136,10 +136,10 @@ const mutations = {
                 vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
             }).then(res=>{
                 if(res){
-                    methods.DeleteRecord("MasterQueue", {
+                    await methods.DeleteRecord("MasterQueue", {
                         vechicleId: ObjectId(bidderInfo.vechicleId),
                     }).then(res => {
-                        methods.InsertRecord("MasterQueue", {
+                        await methods.InsertRecord("MasterQueue", {
                             user_id: ObjectId(args.fleetOwner_id),
                             load_id: ObjectId(args.load_id),
                             vechicleId: bidderInfo.vechicleId ? ObjectId(bidderInfo.vechicleId) : null
@@ -156,6 +156,7 @@ const mutations = {
                     }
                 }
             })
+            return resp
         }
     },
     BidOnLoad: {
