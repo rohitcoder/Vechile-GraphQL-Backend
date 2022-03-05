@@ -120,7 +120,8 @@ const mutations = {
                     load_id: ObjectId(args.load_id),
                     bidderId: ObjectId(args.fleetOwner_id)
                 }).then(bidderInfo => {
-                    if(!bidderInfo.vechicleId){
+                    if(!bidderInfo){
+                        bidderInfo = {}
                         bidderInfo.vechicleId = args.vechicleId
                     }
                     return methods.UpdateRecord("loads", {
