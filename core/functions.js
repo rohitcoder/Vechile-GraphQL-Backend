@@ -99,7 +99,7 @@ exports.methods = {
             })
         })
     },
-    ListRecords: function(collection, searchObj, limit=10, page=0, sortLogic = null){
+    ListRecords: function(collection, searchObj, limit=100, page=0, sortLogic = null){
         return new Promise((resolve, reject) => {
             const offsetValue = limit*page
             if(sortLogic!={} && sortLogic!=null){
