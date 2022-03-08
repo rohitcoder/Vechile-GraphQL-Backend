@@ -59,7 +59,9 @@ const queries = {
                     throw new Error('You are not authorized to perform this action')
                 }
                 let vechileIds = []
-                return methods.ListRecords("MasterQueue", {}, args.limit, args.page).then(vehicles => {
+                return methods.ListRecords("MasterQueue", {
+                    "vechicleId": { $exists: true }
+                }, args.limit, args.page).then(vehicles => {
                     vehicles.map(vehicle => {
                         vechileIds.push(vehicle.vechicleId)
                     })
