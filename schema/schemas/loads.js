@@ -38,7 +38,7 @@ const queries = {
             return ValidateUser(context).then(async (user) => {
                 let userInfo = await methods.FindSingleRecord("users", "_id", user.user_id)
                 return methods.ListRecords('loads', {}, 1000, args.page).then(loadsCollection => {
-                    if (userInfo.role == "driver") {
+                    if (userInfo.type == "fleetOwner") {
                         loadsCollection.forEach((load, index) => {
                             if(load['fleetOwner_id'] && load['fleetOwner_id'].toString() != user.user_id) {
                                 loadsCollection.splice(index, 1)
