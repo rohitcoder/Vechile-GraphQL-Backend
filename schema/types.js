@@ -167,6 +167,25 @@ const Loads = new GraphQLObjectType({
         estimated_weight: { type: GraphQLString },
         BidOpeningTime: { type: GraphQLString },
         BidClosingTime: { type: GraphQLString },
+        orderType: {
+            type: GraphQLString,
+            async resolve(parent, args, context){
+                const auth = await ValidateUser(context)
+                const bidRequests = await methods.FindRecordByMultipleFields("bidRequests", {
+                    "load_id": ObjectId(parent._id),
+                    "bidderId": ObjectId(auth.user_id)
+                })
+                if(!bidRequests){
+                    return "YET_TO_BID"
+                }else if(bidRequests && !parent.fleetOwner_id){
+                    return "RESULT_YET_TO_DECLARED"
+                }else if(parent.fleetOwner_id && auth.user_id == parent.fleetOwner_id.toString()){
+                    return "I_AM_WINNER"
+                }else if(parent.fleetOwner_id){
+                    return "I_AM_NOT_WINNER"
+                }
+            }
+        },
         BidWinner: {
             type: User,
             resolve(parent, args){

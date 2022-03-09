@@ -46,7 +46,7 @@ const queries = {
                         ]
                     }
                 }
-                return methods.ListAggregateRecords('loads', searchQuery, 1000, args.page)
+                return methods.ListAggregateRecords('loads', {}, 1000, args.page)
             })
         }
     },
